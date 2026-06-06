@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Change Maker — Cash Register Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cream:#fdf3e3;
+    --paper:#fffaf2;
+    --ink:#243044;
+    --red:#d6322e;
+    --red-dk:#a8211e;
+    --navy:#1f3a5f;
+    --green:#1f9d55;
+    --green-dk:#157a40;
+    --gold:#e6a817;
+    --line:#e7d8bd;
+    --shadow:rgba(36,48,68,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"DM Sans",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 0%, #fff6e6 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, #ffe9e2 0%, transparent 40%),
+      var(--cream);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* faint diner check pattern */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:0;
+    background-image:linear-gradient(45deg,var(--red) 25%,transparent 25%,transparent 75%,var(--red) 75%),
+      linear-gradient(45deg,var(--red) 25%,transparent 25%,transparent 75%,var(--red) 75%);
+    background-size:36px 36px;background-position:0 0,18px 18px;
+  }
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:18px 16px 60px}
+
+  header.top{text-align:center;margin:6px 0 14px}
+  .logo{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--red);color:#fff;padding:8px 18px;border-radius:14px;
+    box-shadow:0 5px 0 var(--red-dk), 0 10px 18px var(--shadow);
+    transform:rotate(-1.2deg);
+  }
+  .logo h1{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.5rem;margin:0;letter-spacing:.5px}
+  .logo .coin{font-size:1.5rem;filter:drop-shadow(0 1px 0 rgba(0,0,0,.2))}
+  .sub{margin:10px 0 0;color:var(--navy);font-weight:500;font-size:.95rem}
+
+  /* scoreboard */
+  .score{
+    display:flex;justify-content:center;gap:10px;margin:16px 0;flex-wrap:wrap;
+  }
+  .stat{
+    background:var(--paper);border:2px solid var(--line);border-radius:14px;
+    padding:8px 14px;min-width:90px;text-align:center;box-shadow:0 3px 0 var(--line);
+  }
+  .stat .n{font-family:"Fredoka",sans-serif;font-weight:700;font-size:1.35rem;line-height:1}
+  .stat .l{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:#8a7a5c;margin-top:3px}
+  .stat.ok .n{color:var(--green)}
+  .stat.streak .n{color:var(--red)}
+
+  /* controls bar */
+  .bar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .seg{display:inline-flex;background:var(--paper);border:2px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{
+    font-family:"DM Sans";font-weight:700;font-size:.85rem;border:0;background:transparent;
+    color:var(--navy);padding:8px 14px;cursor:pointer;transition:.15s;
+  }
+  .seg button.active{background:var(--navy);color:#fff}
+  .toggle{
+    display:inline-flex;align-items:center;gap:7px;background:var(--paper);
+    border:2px solid var(--line);border-radius:12px;padding:7px 12px;cursor:pointer;
+    font-weight:600;font-size:.85rem;color:var(--navy);user-select:none;
+  }
+  .toggle input{accent-color:var(--red);width:16px;height:16px}
+
+  /* register screen */
+  .register{
+    background:linear-gradient(180deg,#2a3550,#1c2336);
+    border-radius:20px;padding:16px;box-shadow:0 10px 26px var(--shadow), inset 0 2px 0 rgba(255,255,255,.08);
+    border:3px solid #141a29;
+  }
+  .ticket{
+    background:var(--paper);border-radius:12px;padding:14px 16px;
+    background-image:repeating-linear-gradient(var(--paper) 0 27px, #f3e7cf 27px 28px);
+  }
+  .ticket .row{display:flex;justify-content:space-between;align-items:baseline;font-size:1rem}
+  .ticket .row .lab{color:#6b5d44;font-weight:600}
+  .ticket .row .val{font-family:"Share Tech Mono",monospace;font-size:1.15rem;color:var(--ink)}
+  .ticket .order{font-family:"Fredoka";font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:8px;
+    border-bottom:2px dashed #e0cfa9;padding-bottom:8px}
+
+  .lcd{
+    margin-top:14px;background:#0c1f14;border-radius:12px;padding:14px 16px;
+    border:2px solid #06120b;box-shadow:inset 0 0 22px rgba(0,0,0,.7);text-align:center;
+  }
+  .lcd .cap{font-family:"Share Tech Mono";color:#5fe08a;opacity:.7;font-size:.7rem;letter-spacing:2px;text-transform:uppercase}
+  .lcd .big{
+    font-family:"Share Tech Mono";font-size:2.6rem;font-weight:400;color:#7dffa6;
+    text-shadow:0 0 8px rgba(80,255,150,.55);letter-spacing:2px;line-height:1.1;
+  }
+  .lcd.hidden-mode .big{color:#ffd66b;text-shadow:0 0 8px rgba(255,200,80,.5)}
+
+  /* counted-out tray */
+  .tray{
+    margin-top:14px;background:var(--paper);border:2px dashed var(--line);border-radius:14px;
+    padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .tray .label{font-weight:600;color:#6b5d44;font-size:.9rem}
+  .tray .amount{font-family:"Share Tech Mono";font-size:1.6rem;color:var(--navy)}
+  .tray .amount.over{color:var(--red)}
+  .tray .amount.exact{color:var(--green)}
+  .hint-line{flex-basis:100%;font-size:.85rem;color:#8a7a5c;min-height:1.1em}
+
+  /* denominations */
+  .panel{margin-top:18px}
+  .panel h2{
+    font-family:"Fredoka";font-size:.85rem;letter-spacing:1.5px;text-transform:uppercase;
+    color:#a08a63;margin:0 0 8px;font-weight:600;
+  }
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:480px){.grid{gap:8px}}
+
+  .denom{
+    position:relative;border:0;cursor:pointer;padding:0;background:transparent;
+    transition:transform .08s ease;outline:none;
+  }
+  .denom:active{transform:translateY(3px) scale(.97)}
+  .denom .face{
+    border-radius:12px;height:74px;display:flex;align-items:center;justify-content:center;
+    font-family:"Fredoka";font-weight:700;position:relative;overflow:hidden;
+  }
+  /* bills */
+  .bill .face{
+    color:#0b3d22;background:linear-gradient(135deg,#7cd49a,#3faf6c);
+    border:2px solid #2c8a52;box-shadow:0 4px 0 #2c8a52, inset 0 0 0 2px rgba(255,255,255,.25);
+    font-size:1.5rem;
+  }
+  .bill .face::after{content:"";position:absolute;inset:6px;border:2px dashed rgba(255,255,255,.35);border-radius:8px}
+  /* coins */
+  .coin .face{border-radius:50%;width:74px;height:74px;margin:0 auto;font-size:1rem;flex-direction:column;line-height:1}
+  .coin .face small{font-weight:600;font-size:.62rem;opacity:.8;margin-top:2px}
+  .coin.silver .face{background:radial-gradient(circle at 35% 30%,#fdfdfd,#b9bfc6 70%,#8a9099);
+    border:3px solid #9aa0a8;color:#3a4048;box-shadow:0 4px 0 #8a9099}
+  .coin.copper .face{background:radial-gradient(circle at 35% 30%,#f0c39a,#c47a3f 70%,#9c5e2c);
+    border:3px solid #9c5e2c;color:#4a2c12;box-shadow:0 4px 0 #9c5e2c}
+  .coin.quarter .face{transform:scale(1.0)}
+  .coin.dime .face{width:60px;height:60px;font-size:.85rem;margin-top:14px}
+  .denom .name{display:block;margin-top:6px;font-size:.7rem;color:#8a7a5c;font-weight:600;text-align:center}
+
+  .badge{
+    position:absolute;top:-8px;right:-6px;background:var(--red);color:#fff;
+    min-width:24px;height:24px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    font-family:"Fredoka";font-weight:700;font-size:.85rem;padding:0 6px;
+    box-shadow:0 2px 5px var(--shadow);transform:scale(0);transition:transform .15s cubic-bezier(.34,1.56,.64,1);z-index:2;
+  }
+  .badge.show{transform:scale(1)}
+  .minus{
+    position:absolute;left:-6px;top:-8px;width:22px;height:22px;border-radius:50%;
+    background:#fff;border:2px solid var(--line);color:var(--navy);font-weight:700;font-size:.9rem;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;
+    box-shadow:0 2px 4px var(--shadow);opacity:0;pointer-events:none;transition:opacity .15s;
+  }
+  .minus.show{opacity:1;pointer-events:auto}
+
+  /* action buttons */
+  .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .btn{
+    flex:1;min-width:130px;font-family:"Fredoka";font-weight:700;font-size:1.05rem;
+    border:0;border-radius:14px;padding:14px;cursor:pointer;transition:transform .08s, filter .15s;color:#fff;
+  }
+  .btn:active{transform:translateY(3px)}
+  .btn.give{background:var(--green);box-shadow:0 5px 0 var(--green-dk)}
+  .btn.give:active{box-shadow:0 2px 0 var(--green-dk)}
+  .btn.clear{background:#b9a884;box-shadow:0 5px 0 #94855f;flex:0 0 auto;min-width:auto;padding:14px 18px}
+  .btn.clear:active{box-shadow:0 2px 0 #94855f}
+  .btn.hintbtn{background:var(--navy);box-shadow:0 5px 0 #122742;flex:0 0 auto;min-width:auto;padding:14px 18px}
+  .btn.hintbtn:active{box-shadow:0 2px 0 #122742}
+  .btn.next{background:var(--red);box-shadow:0 5px 0 var(--red-dk);display:none}
+  .btn.next:active{box-shadow:0 2px 0 var(--red-dk)}
+
+  /* feedback */
+  .feedback{
+    margin-top:16px;border-radius:14px;padding:14px 16px;font-weight:600;display:none;
+    animation:pop .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .feedback.good{display:block;background:#e3f8ec;border:2px solid var(--green);color:var(--green-dk)}
+  .feedback.bad{display:block;background:#fdeceb;border:2px solid var(--red);color:var(--red-dk)}
+  .feedback .head{font-family:"Fredoka";font-size:1.2rem;display:block;margin-bottom:4px}
+  .feedback .breakdown{margin-top:8px;font-weight:500;font-size:.92rem;color:var(--ink)}
+  .feedback .breakdown b{font-family:"Share Tech Mono"}
+
+  footer.tip{margin-top:26px;text-align:center;color:#a08a63;font-size:.8rem;line-height:1.5}
+  kbd{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"Share Tech Mono";font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><span class="coin">🪙</span><h1>CHANGE MAKER</h1></div>
+    <p class="sub">The register tells you the change — you count out the right bills &amp; coins!</p>
+  </header>
+
+  <div class="score">
+    <div class="stat ok"><div class="n" id="sCorrect">0</div><div class="l">Correct</div></div>
+    <div class="stat streak"><div class="n" id="sStreak">0</div><div class="l">🔥 Streak</div></div>
+    <div class="stat"><div class="n" id="sBest">0</div><div class="l">Best</div></div>
+  </div>
+
+  <div class="bar">
+    <div class="seg" id="diff">
+      <button data-d="easy" class="active">Easy</button>
+      <button data-d="medium">Medium</button>
+      <button data-d="hard">Hard</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="calcMode" /> I'll calculate the change myself</label>
+    <label class="toggle"><input type="checkbox" id="sound" checked /> 🔊 Sound</label>
+  </div>
+
+  <div class="register">
+    <div class="ticket">
+      <div class="order" id="orderText">Order: …</div>
+      <div class="row"><span class="lab">Order total</span><span class="val" id="totalVal">$0.00</span></div>
+      <div class="row"><span class="lab">Customer paid</span><span class="val" id="paidVal">$0.00</span></div>
+    </div>
+    <div class="lcd" id="lcd">
+      <div class="cap" id="lcdCap">Change due</div>
+      <div class="big" id="changeVal">$0.00</div>
+    </div>
+    <div class="tray">
+      <span class="label">You've counted out</span>
+      <span class="amount" id="givenVal">$0.00</span>
+      <span class="hint-line" id="hintLine"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Bills</h2>
+    <div class="grid" id="bills"></div>
+  </div>
+  <div class="panel">
+    <h2>Coins</h2>
+    <div class="grid" id="coins"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn give" id="giveBtn">Give Change</button>
+    <button class="btn clear" id="clearBtn">Clear</button>
+    <button class="btn hintbtn" id="hintBtn">Show me how</button>
+    <button class="btn next" id="nextBtn">Next Customer →</button>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <footer class="tip">
+    Tap a bill or coin to add it · tap the little <b>−</b> to remove one · <kbd>Clear</kbd> resets the tray.<br/>
+    Built for practice — change scenarios go on forever. Good luck at Jersey Mike's! 🥪
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- denominations (value in cents) ----
+  const DENOMS = [
+    {key:"twenty", value:2000, label:"$20", name:"Twenty", kind:"bill"},
+    {key:"ten",    value:1000, label:"$10", name:"Ten",    kind:"bill"},
+    {key:"five",   value:500,  label:"$5",  name:"Five",   kind:"bill"},
+    {key:"one",    value:100,  label:"$1",  name:"One",    kind:"bill"},
+    {key:"quarter",value:25,   label:"25",  name:"Quarter",kind:"coin", style:"silver quarter", sub:"cents"},
+    {key:"dime",   value:10,   label:"10",  name:"Dime",   kind:"coin", style:"silver dime",    sub:"cents"},
+    {key:"nickel", value:5,    label:"5",   name:"Nickel", kind:"coin", style:"silver nickel",  sub:"cents"},
+    {key:"penny",  value:1,    label:"1",   name:"Penny",  kind:"coin", style:"copper penny",   sub:"cent"},
+  ];
+
+  // ---- state ----
+  let difficulty = "easy";
+  let scenario = null;          // {total, payment, change}
+  let tendered = {};            // key -> count
+  let solved = false;
+  let stats = {correct:0, streak:0, best:0};
+
+  // ---- helpers ----
+  const $ = id => document.getElementById(id);
+  const money = c => "$" + (c/100).toFixed(2);
+  const randInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+  const ceilTo = (n,step) => Math.ceil(n/step)*step;
+
+  function sumTendered(){
+    let t=0; for(const d of DENOMS){ t += (tendered[d.key]||0)*d.value; } return t;
+  }
+  function countPieces(map){
+    let n=0; for(const d of DENOMS){ n += (map[d.key]||0); } return n;
+  }
+  function optimal(change){
+    let rem=change, out={};
+    for(const d of DENOMS){ out[d.key]=Math.floor(rem/d.value); rem%=d.value; }
+    return out;
+  }
+  function describe(map){
+    const parts=[];
+    for(const d of DENOMS){
+      const n=map[d.key]||0;
+      if(n>0){
+        const unit = d.kind==="bill" ? "× "+d.label : "× "+d.label+(d.value===1?"¢":"¢");
+        parts.push(n+" "+unit);
+      }
+    }
+    return parts.length ? parts.join(", ") : "nothing";
+  }
+
+  // ---- sound ----
+  let actx=null;
+  function beep(type){
+    if(!$("sound").checked) return;
+    try{
+      actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.connect(g); g.connect(actx.destination);
+      if(type==="add"){ o.frequency.value=660; g.gain.value=.05; o.start(); o.stop(actx.currentTime+.05); }
+      else if(type==="good"){
+        o.frequency.setValueAtTime(523,actx.currentTime);
+        o.frequency.setValueAtTime(784,actx.currentTime+.09);
+        g.gain.value=.07; o.start(); o.stop(actx.currentTime+.22);
+      } else { // bad
+        o.type="square"; o.frequency.setValueAtTime(200,actx.currentTime);
+        g.gain.value=.05; o.start(); o.stop(actx.currentTime+.18);
+      }
+    }catch(e){}
+  }
+
+  // ---- scenario generation ----
+  const ORDERS = [
+    "Giant Italian sub","Regular #7 Turkey & Provolone","Mini cheesesteak","Club sub + chips",
+    "BLT + fountain drink","Tuna sub + cookie","Veggie sub","Roast beef + bag of chips",
+    "Two regular subs","Giant club + drink","Meatball sub","Chipotle cheesesteak",
+    "Kids meal + juice","Salad + drink","Cookie & a drink","Bottle of water + chips"
+  ];
+
+  function genTotal(diff){
+    if(diff==="easy")  return randInt(4,80)*25;        // $1.00–$20.00 in quarter steps
+    if(diff==="medium")return randInt(150,3000);       // $1.50–$30.00 to the cent
+    return randInt(120,4000);                          // hard: $1.20–$40.00
+  }
+
+  function genPayment(total, diff){
+    const opts = new Set();
+    // next whole dollar
+    opts.add(total % 100 === 0 ? total + 100 : ceilTo(total,100));
+    // next $5 and $10
+    opts.add(ceilTo(total+1,500));
+    opts.add(ceilTo(total+1,1000));
+    // smallest single covering bill
+    for(const b of [100,500,1000,2000]){ if(b>total){ opts.add(b); break; } }
+
+    if(diff==="hard"){
+      const cents = total % 100;
+      if(cents>0){
+        // customer hands a bill PLUS the exact cents → clean dollar change
+        for(const b of [500,1000,2000]){ if(b>=ceilTo(total,100)) opts.add(b+cents); }
+      }
+      opts.add(ceilTo(total+1,2000)); // occasionally a twenty
+    }
+
+    // keep realistic: change shouldn't dwarf the order
+    let arr=[...opts].filter(p=> p>total && (p-total) <= total*6 + 1500);
+    if(!arr.length) arr=[...opts].filter(p=>p>total);
+    return arr[randInt(0,arr.length-1)];
+  }
+
+  function newScenario(){
+    const total = genTotal(difficulty);
+    const payment = genPayment(total, difficulty);
+    scenario = {total, payment, change: payment-total, order: ORDERS[randInt(0,ORDERS.length-1)]};
+    tendered = {};
+    solved = false;
+    render();
+    $("feedback").className="feedback";
+    $("feedback").style.display="none";
+    $("giveBtn").style.display="";
+    $("nextBtn").style.display="none";
+    $("clearBtn").disabled=false;
+  }
+
+  // ---- rendering ----
+  function buildTiles(){
+    const billBox=$("bills"), coinBox=$("coins");
+    billBox.innerHTML=""; coinBox.innerHTML="";
+    for(const d of DENOMS){
+      const btn=document.createElement("button");
+      btn.className="denom "+(d.kind==="bill"?"bill":"coin "+d.style);
+      btn.dataset.key=d.key;
+      const faceInner = d.kind==="bill"
+        ? d.label
+        : d.label + "<small>"+(d.value===1?"cent":"cents")+"</small>";
+      btn.innerHTML =
+        '<span class="minus" data-minus="'+d.key+'">−</span>'+
+        '<span class="badge" id="b-'+d.key+'">0</span>'+
+        '<span class="face">'+faceInner+'</span>'+
+        '<span class="name">'+d.name+'</span>';
+      btn.addEventListener("click", function(e){
+        if(e.target.dataset.minus) return; // handled separately
+        if(solved) return;
+        tendered[d.key]=(tendered[d.key]||0)+1;
+        beep("add");
+        renderTray();
+        updateBadge(d.key);
+      });
+      btn.querySelector(".minus").addEventListener("click", function(e){
+        e.stopPropagation();
+        if(solved) return;
+        if(tendered[d.key]>0){ tendered[d.key]--; renderTray(); updateBadge(d.key); }
+      });
+      (d.kind==="bill"?billBox:coinBox).appendChild(btn);
+    }
+  }
+
+  function updateBadge(key){
+    const n=tendered[key]||0;
+    const badge=$("b-"+key);
+    badge.textContent=n;
+    badge.classList.toggle("show", n>0);
+    const minus=document.querySelector('[data-minus="'+key+'"]');
+    if(minus) minus.classList.toggle("show", n>0);
+  }
+
+  function renderTray(){
+    const given=sumTendered();
+    const el=$("givenVal");
+    el.textContent=money(given);
+    el.className="amount";
+    const hint=$("hintLine");
+    if(scenario && !$("calcMode").checked){
+      const diff=scenario.change-given;
+      if(given===0){ hint.textContent=""; }
+      else if(diff>0){ el.classList.remove("over"); hint.textContent="Still need "+money(diff)+" more."; }
+      else if(diff<0){ el.classList.add("over"); hint.textContent="That's "+money(-diff)+" too much."; }
+      else { el.classList.add("exact"); hint.textContent="Exact amount — hit Give Change! ✓"; }
+    } else {
+      hint.textContent="";
+    }
+  }
+
+  function render(){
+    $("orderText").textContent="Order: "+scenario.order;
+    $("totalVal").textContent=money(scenario.total);
+    $("paidVal").textContent=money(scenario.payment);
+
+    const calc=$("calcMode").checked;
+    const lcd=$("lcd");
+    if(calc){
+      lcd.classList.add("hidden-mode");
+      $("lcdCap").textContent="Change due — you work it out!";
+      $("changeVal").textContent="$ ? . ? ?";
+    } else {
+      lcd.classList.remove("hidden-mode");
+      $("lcdCap").textContent="Change due";
+      $("changeVal").textContent=money(scenario.change);
+    }
+    for(const d of DENOMS) updateBadge(d.key);
+    renderTray();
+  }
+
+  // ---- actions ----
+  function give(){
+    if(solved) return;
+    const given=sumTendered();
+    const fb=$("feedback");
+    if(given===scenario.change){
+      solved=true;
+      stats.correct++; stats.streak++;
+      stats.best=Math.max(stats.best,stats.streak);
+      updateStats();
+      beep("good");
+      const opt=optimal(scenario.change);
+      const yourPieces=countPieces(tendered), optPieces=countPieces(opt);
+      let extra;
+      if(yourPieces<=optPieces){
+        extra='<div class="breakdown">🌟 And that\'s the fewest bills &amp; coins possible. Perfect technique!</div>';
+      }else{
+        extra='<div class="breakdown">Correct! Tip — the quickest way is <b>'+describe(opt)+'</b> ('+optPieces+
+              ' pieces vs. your '+yourPieces+'). Fewer pieces = faster line!</div>';
+      }
+      fb.className="feedback good";
+      fb.innerHTML='<span class="head">✅ Exact change — '+money(scenario.change)+'!</span>'+
+                   'You handed back '+describe(tendered)+'.'+extra;
+      fb.style.display="block";
+      $("giveBtn").style.display="none";
+      $("nextBtn").style.display="";
+    } else {
+      stats.streak=0; updateStats();
+      beep("bad");
+      const diff=scenario.change-given;
+      const dirTxt = diff>0 ? "That's "+money(diff)+" short." : "That's "+money(-diff)+" too much.";
+      fb.className="feedback bad";
+      fb.innerHTML='<span class="head">Not quite — try again!</span>'+
+                   'Change due is <b>'+money(scenario.change)+'</b>. You counted out <b>'+money(given)+'</b>. '+dirTxt+
+                   ' Adjust the tray and press Give Change again.';
+      fb.style.display="block";
+    }
+  }
+
+  function showHow(){
+    if(!scenario) return;
+    const opt=optimal(scenario.change);
+    const fb=$("feedback");
+    fb.className="feedback good";
+    fb.innerHTML='<span class="head">💡 How to make '+money(scenario.change)+'</span>'+
+                 'The simplest way is <b>'+describe(opt)+'</b> ('+countPieces(opt)+' pieces total). '+
+                 'Start with the biggest bills, then work down to the coins.';
+    fb.style.display="block";
+  }
+
+  function clearTray(){
+    if(solved) return;
+    tendered={};
+    for(const d of DENOMS) updateBadge(d.key);
+    renderTray();
+  }
+
+  function updateStats(){
+    $("sCorrect").textContent=stats.correct;
+    $("sStreak").textContent=stats.streak;
+    $("sBest").textContent=stats.best;
+  }
+
+  // ---- wire up ----
+  $("giveBtn").addEventListener("click", give);
+  $("clearBtn").addEventListener("click", clearTray);
+  $("hintBtn").addEventListener("click", showHow);
+  $("nextBtn").addEventListener("click", newScenario);
+
+  $("diff").addEventListener("click", function(e){
+    const b=e.target.closest("button"); if(!b) return;
+    [...this.children].forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    difficulty=b.dataset.d;
+    newScenario();
+  });
+  $("calcMode").addEventListener("change", function(){
+    // re-render current scenario with/without the change shown
+    if(scenario){ render(); }
+  });
+
+  // keyboard: Enter = give / next
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Enter"){
+      if(solved) newScenario(); else give();
+    }
+  });
+
+  // ---- go ----
+  buildTiles();
+  updateStats();
+  newScenario();
+})();
+</script>
+</body>
+</html>
