@@ -146,7 +146,7 @@
   }
   .bill .face::after{content:"";position:absolute;inset:6px;border:2px dashed rgba(255,255,255,.35);border-radius:8px}
   /* coins */
-  .coin .face{border-radius:50%;width:74px;height:74px;margin:0 auto;font-size:1rem;flex-direction:column;line-height:1}
+  .coin .face{border-radius:50%;width:74px;height:74px;margin:0 auto;font-size:.82rem;flex-direction:column;line-height:1;text-align:center}
   .coin .face small{font-weight:600;font-size:.62rem;opacity:.8;margin-top:2px}
   .coin.silver .face{background:radial-gradient(circle at 35% 30%,#fdfdfd,#b9bfc6 70%,#8a9099);
     border:3px solid #9aa0a8;color:#3a4048;box-shadow:0 4px 0 #8a9099}
@@ -400,14 +400,11 @@
       const btn=document.createElement("button");
       btn.className="denom "+(d.kind==="bill"?"bill":"coin "+d.style);
       btn.dataset.key=d.key;
-      const faceInner = d.kind==="bill"
-        ? d.label
-        : d.label + "<small>"+(d.value===1?"cent":"cents")+"</small>";
+      const faceInner = d.kind==="bill" ? d.label : d.name;
       btn.innerHTML =
         '<span class="minus" data-minus="'+d.key+'">−</span>'+
         '<span class="badge" id="b-'+d.key+'">0</span>'+
-        '<span class="face">'+faceInner+'</span>'+
-        '<span class="name">'+d.name+'</span>';
+        '<span class="face">'+faceInner+'</span>';
       btn.addEventListener("click", function(e){
         if(e.target.dataset.minus) return; // handled separately
         if(solved) return;
