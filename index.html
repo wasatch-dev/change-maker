@@ -236,11 +236,6 @@
       <div class="cap" id="lcdCap">Change due</div>
       <div class="big" id="changeVal">$0.00</div>
     </div>
-    <div class="tray">
-      <span class="label">You've counted out</span>
-      <span class="amount" id="givenVal">$0.00</span>
-      <span class="hint-line" id="hintLine"></span>
-    </div>
   </div>
 
   <div class="panel">
@@ -410,13 +405,12 @@
         if(solved) return;
         tendered[d.key]=(tendered[d.key]||0)+1;
         beep("add");
-        renderTray();
         updateBadge(d.key);
       });
       btn.querySelector(".minus").addEventListener("click", function(e){
         e.stopPropagation();
         if(solved) return;
-        if(tendered[d.key]>0){ tendered[d.key]--; renderTray(); updateBadge(d.key); }
+        if(tendered[d.key]>0){ tendered[d.key]--; updateBadge(d.key); }
       });
       (d.kind==="bill"?billBox:coinBox).appendChild(btn);
     }
@@ -429,23 +423,6 @@
     badge.classList.toggle("show", n>0);
     const minus=document.querySelector('[data-minus="'+key+'"]');
     if(minus) minus.classList.toggle("show", n>0);
-  }
-
-  function renderTray(){
-    const given=sumTendered();
-    const el=$("givenVal");
-    el.textContent=money(given);
-    el.className="amount";
-    const hint=$("hintLine");
-    if(scenario && !$("calcMode").checked){
-      const diff=scenario.change-given;
-      if(given===0){ hint.textContent=""; }
-      else if(diff>0){ el.classList.remove("over"); hint.textContent="Still need "+money(diff)+" more."; }
-      else if(diff<0){ el.classList.add("over"); hint.textContent="That's "+money(-diff)+" too much."; }
-      else { el.classList.add("exact"); hint.textContent="Exact amount — hit Give Change! ✓"; }
-    } else {
-      hint.textContent="";
-    }
   }
 
   function render(){
@@ -465,7 +442,6 @@
       $("changeVal").textContent=money(scenario.change);
     }
     for(const d of DENOMS) updateBadge(d.key);
-    renderTray();
   }
 
   // ---- actions ----
@@ -502,7 +478,7 @@
       fb.className="feedback bad";
       fb.innerHTML='<span class="head">Not quite — try again!</span>'+
                    'Change due is <b>'+money(scenario.change)+'</b>. You counted out <b>'+money(given)+'</b>. '+dirTxt+
-                   ' Adjust the tray and press Give Change again.';
+                   ' Fix your bills &amp; coins and press Give Change again.';
       fb.style.display="block";
     }
   }
@@ -522,7 +498,6 @@
     if(solved) return;
     tendered={};
     for(const d of DENOMS) updateBadge(d.key);
-    renderTray();
   }
 
   function updateStats(){
